@@ -1,3 +1,5 @@
+from imageprocess.utils.conversions import conv_to_uint8
+
 from typing import List
 
 import numpy as np
@@ -5,11 +7,9 @@ import cv2
 
 
 class ImageAlign:
-    """Uses image feature matching to warp and align mosaic images created from
-    images taken in different flight campaigns. This is useful for mosaics
-    created without the use of ground control points, as the resulting
-    georeferenced mosaics will have some error that does not correlate between
-    campaigns."""
+    """Uses image feature matching to align and warp a set of images of the
+    same scene.
+    """
     def __init__(
             self,
             feature_method: str = 'akaze',
@@ -53,7 +53,7 @@ class ImageAlign:
                     img = img[:, :, 0]  # ignore mask layer
             if img.dtype != 'uint8':
                 print("\t\tConverting to 8-bit...")
-                img = self._conv_to_uint8(img)
+                img = conv_to_uint8(img)
 
             features = self._detect_features(img)
 
@@ -173,24 +173,3 @@ class ImageAlign:
             'inlier_points': (pts1, pts2)
         }
         return results
-
-    def _conv_to_uint8(self, img):
-        """Scales image pixel values to cover the range 0 -- 255, and
-        converts from current dtype to uint8.
-
-        Parameters
-        ----------
-        img : numpy.ndarray
-            image to rescale and convert to uint8
-
-        Returns
-        -------
-        numpy.ndarray
-            rescaled uint8 image.
-
-        """
-        max_pix = np.percentile(img, 99.99)  # ignore bright outliers
-        min_pix = img.min()
-        img = 255 * (img.astype(np.float32) - min_pix) / (max_pix - min_pix)
-        img = img.clip(0, 255).astype(np.uint8)
-        return img
