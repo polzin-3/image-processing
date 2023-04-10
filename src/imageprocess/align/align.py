@@ -1,12 +1,7 @@
 from typing import List
 
-from pipeline import utils, image_funcs, plot_funcs
-import os
 import numpy as np
-import pandas as pd
 import cv2
-import rasterio
-import ntpath  # for file naming
 
 
 class ImageAlign:
@@ -36,13 +31,14 @@ class ImageAlign:
         self.feature_method = feature_method
         self.detection_threshold = detection_threshold
 
-    def detect_features(self, images: list) -> None:
+    def detect_features(self, images: List[np.array]) -> None:
         """Detect features in all images. If images are not already greyscale
         and uint8, then they will be converted prior to detection
 
         Parameters
         ----------
-        images: list
+        images: List[np.array]
+            Original images to align
         """
         self.orig_images = images
         self.keypoints = []
@@ -64,17 +60,16 @@ class ImageAlign:
             self.keypoints.append(features['keypoints'])
             self.descriptors.append(features['descriptors'])
 
+    def predict(self, ref_image_index: int) -> None:
+        """Predict image transforms that best align each image with the
+        selected reference image.
 
-    """Predict image transforms that best align each image with the
         Parameters
         ----------
         ref_image_index: int
-        reference image
-
             Input image list index of the image to use as the reference image,
             to which all other images are transformed
         """
-    def predict(self, ref_image_index: int):
         self.ref_image_index = ref_image_index
 
         self.matches = []
