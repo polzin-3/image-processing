@@ -1,4 +1,4 @@
-from imageprocess.utils.conversions import conv_to_uint8
+from imageprocess.utils.conversions import conv_to_uint8, conv_to_greyscale
 
 from typing import List
 
@@ -44,21 +44,27 @@ class ImageAlign:
         self.keypoints = []
         self.descriptors = []
 
-        for img in self.orig_images:
+        for i, img in enumerate(self.orig_images):
+            print(f"Image {i}")
             if len(img.shape) > 2:
                 if img.shape[-1] > 2:
-                    print("\t\tConverting to greyscale...")
-                    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                    print("\tConverting to greyscale...")
+                    img = conv_to_greyscale(img)
                 else:
                     img = img[:, :, 0]  # ignore mask layer
             if img.dtype != 'uint8':
-                print("\t\tConverting to 8-bit...")
+                print("\tConverting to 8-bit...")
                 img = conv_to_uint8(img)
 
+            print("\tDetecting features...")
             features = self._detect_features(img)
 
             self.keypoints.append(features['keypoints'])
             self.descriptors.append(features['descriptors'])
+            print(
+                "Keypoints and descriptors available in self.keypoints "
+                "and self.descriptors"
+            )
 
     def predict(self, ref_image_index: int) -> None:
         """Predict image transforms that best align each image with the
